@@ -137,8 +137,8 @@ class WysiwygEditor extends Component {
   };
 
   keyBindingFn = event => {
+    const { keyBindingFn, onTab } = this.props;
     if (event.key === 'Tab') {
-      const { onTab } = this.props;
       if (!onTab || !onTab(event)) {
         const editorState = changeDepth(
           this.state.editorState,
@@ -150,12 +150,14 @@ class WysiwygEditor extends Component {
           event.preventDefault();
         }
       }
-      return null;
     }
     if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
       if (SuggestionHandler.isOpen()) {
         event.preventDefault();
       }
+    }
+    if (keyBindingFn) {
+      return keyBindingFn(event);
     }
     return getDefaultKeyBinding(event);
   };
@@ -356,12 +358,16 @@ class WysiwygEditor extends Component {
       editorState,
       toolbar: { inline },
     } = this.state;
+    const { handleKeyCommand } = this.props;
     if (inline && inline.options.indexOf(command) >= 0) {
       const newState = RichUtils.handleKeyCommand(editorState, command);
       if (newState) {
         this.onChange(newState);
         return true;
       }
+    }
+    if (handleKeyCommand) {
+      return handleKeyCommand(command);
     }
     return false;
   };
@@ -548,6 +554,8 @@ WysiwygEditor.propTypes = {
   customDecorators: PropTypes.array,
   editorRef: PropTypes.func,
   handlePastedText: PropTypes.func,
+  keyBindingFn: PropTypes.func,
+  handleKeyCommand: PropTypes.func 
 };
 
 WysiwygEditor.defaultProps = {
